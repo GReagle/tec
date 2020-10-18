@@ -46,6 +46,9 @@ SEE ALSO
      https://burner.kiwi/, https://www.1secmail.com/
 
 BSD                            October 18, 2020                            BSD
+
+__________________________________________________________________________
+
 TEC-LIST-HEADERS(1)       BSD General Commands Manual      TEC-LIST-HEADERS(1)
 
 NAME
@@ -77,6 +80,9 @@ SEE ALSO
      tec-create-address(1), tec-view-message(1), jq(1)
 
 BSD                            October 18, 2020                            BSD
+
+__________________________________________________________________________
+
 TEC-VIEW-MESSAGE(1)       BSD General Commands Manual      TEC-VIEW-MESSAGE(1)
 
 NAME
