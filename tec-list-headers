@@ -1,0 +1,49 @@
+#!/bin/sh
+set -u
+
+printerr() {>&2 printf '%s\n' "$0: $1" ; exit 1; }
+usage="-k|-s"
+
+flags=''
+while getopts ks f; do
+    flags="$flags$f"
+done
+shift $(expr $OPTIND - 1)
+[ $# -gt 0 ] && printerr "$usage"
+
+case "$flags" in
+s)  address=$(cat)
+    user=${address%@*}
+    domain=${address#*.}
+    base="https://www.1secmail.com/api/v1/"
+    url="${base}?action=getMessages&login=${user}&{domain}=1secmail.${domain}"
+    messages=$(curl -sL "$url")
+    count=$(printf %s "$messages" | jq 'length')
+    printf '%s has %s messages(s).\n\n' "$address" "$count"
+    printf %s "$messages" | jq '' | egrep -v '^ *[][{]'
+    ;;
+k)  base="https://burner.kiwi/api/v1"
+    acct_info=$(cat)
+    acct_addr=$(printf %s "$acct_info" | jq -r .result.email.address)
+    acct_id=$(printf %s "$acct_info" | jq -r .result.email.id)
+    acct_token=$(printf %s "$acct_info" | jq -r .result.token)
+    auth_hdr="X-Burner-Key: $acct_token"
+    messages=$(curl -sL -H "$auth_hdr" "${base}/inbox/${acct_id}/messages")
+    [ $? != 0 ] && printerr 'curl error'
+    errors=$(printf %s "$messages" | jq -r .errors)
+    [ "$errors" != null ] && printerr "errors = $errors"
+    count=$(printf %s "$messages" | jq '.result | length')
+    printf '%s has %s messages(s).\n\n' "$acct_addr" "$count"
+    for i in $(seq 0 $(expr $count - 1) ); do
+        headers=$(printf %s "$messages" | jq -r ".result[$i] | del(.body_html) | del(.body_plain)")
+        printf '  Received  at: '
+        printf %s "$headers" | jq '.received_at | strftime("%Y-%m-%d %H:%M:%S Z")'
+        printf '  Time to live: '
+        printf %s "$headers" | jq '.ttl | strftime("%Y-%m-%d %H:%M:%S Z")'
+        printf %s "$headers" | jq 'del(.received_at) | del(.ttl)' | egrep -v '^{|^}'
+        printf '\n'
+    done
+    ;;
+*)  printerr "$usage"
+    ;;
+esac

@@ -1,0 +1,31 @@
+.Dd 2020-10-17
+.Dt TEC-LIST-HEADERS 1
+.Os
+.Sh NAME
+.Nm tec-list-headers
+.Nd temporary email commands: list headers of messages
+.Sh SYNOPSIS
+.Nm
+.Fl k | Fl s
+.Sh DESCRIPTION
+.Ss Input
+.Nm
+requires the information previously created by
+.Xr tec-create-email 1
+to be on its standard input.
+.Ss Arguments and Options
+.Nm
+does not take any arguments.
+.Bl -tag -width Ds
+.It Fl k
+Use burner.kiwi temporary email service.
+.It Fl s
+Use 1secmail temporary email service.
+.El
+.Sh EXAMPLES
+.Ss burner.kiwi
+.Dl tec-list-headers -k < kiwi-account.json
+.Ss 1secmail
+.Dl tec-list-headers -s < secmail-address.txt
+.Sh SEE ALSO
+.Xr tec-create-email 1 , Xr tec-view-message 1 , Xr jq 1

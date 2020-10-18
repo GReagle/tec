@@ -1,0 +1,48 @@
+#!/bin/sh
+set -u
+
+printerr() {>&2 printf '%s\n' "$0 $1" ; exit 1; }
+usage="[-t] -k|-s ID"
+
+flags=''
+while getopts kst f; do
+    flags="$flags$f"
+done
+shift $(expr $OPTIND - 1)
+[ $# -ne 1 ] && printerr "$usage"
+
+case "$flags" in
+*s*) address=$(cat)
+    user=${address%@*}
+    domain=${address#*.}
+    base="https://www.1secmail.com/api/v1/"
+    url="${base}?action=readMessage&login=${user}&domain=1secmail.${domain}&id=${1}"
+    msg=$(curl -sL "$url")
+    if [ "$msg" = "Message not found" ]; then
+        printerr "ID '$1' does not match a message"
+    fi
+    case "$flags" in *t*) printf '%s\n' "$msg" | jq -r ".textBody";;
+                      *)  printf '%s\n' "$msg" | jq -r ".htmlBody";;
+    esac
+    ;;
+*k*) url="https://burner.kiwi/api/v1"
+    acct_info=$(cat)
+    acct_id=$(printf %s "$acct_info" | jq -r .result.email.id)
+    acct_token=$(printf %s "$acct_info" | jq -r .result.token)
+    auth_hdr="X-Burner-Key: $acct_token"
+    messages=$(curl -sL -H "$auth_hdr" "${url}/inbox/${acct_id}/messages")
+    [ $? != 0 ] && printerr 'curl error'
+    errors=$(printf %s "$messages" | jq -r .errors)
+    [ "$errors" != null ] && printerr "errors = $errors"
+
+    count=$(printf %s "$messages" | jq '.result | length')
+    [ "$count" -eq 0 ] && printerr "empty mailbox has no messages"
+    msg=$(printf %s "$messages" | jq ".result[] | select(.id==\"$1\")")
+    [ -z "$msg" ] && printerr "ID '$1' does not match a message"
+    case "$flags" in *t*) printf '%s\n' "$msg" | jq -r ".body_plain";;
+                      *)  printf '%s\n' "$msg" | jq -r ".body_html";;
+    esac
+    ;;
+*)  printerr "$usage"
+    ;;
+esac
