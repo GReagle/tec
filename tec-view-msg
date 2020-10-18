@@ -21,9 +21,10 @@ case "$flags" in
     if [ "$msg" = "Message not found" ]; then
         printerr "ID '$1' does not match a message"
     fi
-    case "$flags" in *t*) printf '%s\n' "$msg" | jq -r ".textBody";;
-                      *)  printf '%s\n' "$msg" | jq -r ".htmlBody";;
+    case "$flags" in *t*) body=$(printf '%s\n' "$msg" | jq -r ".textBody");;
+                      *)  body=$(printf '%s\n' "$msg" | jq -r ".htmlBody");;
     esac
+    [ -n "$body" ] && printf '%s\n' "$body" || printerr "Body is empty"
     ;;
 *k*) url="https://burner.kiwi/api/v1"
     acct_info=$(cat)
@@ -39,9 +40,10 @@ case "$flags" in
     [ "$count" -eq 0 ] && printerr "empty mailbox has no messages"
     msg=$(printf %s "$messages" | jq ".result[] | select(.id==\"$1\")")
     [ -z "$msg" ] && printerr "ID '$1' does not match a message"
-    case "$flags" in *t*) printf '%s\n' "$msg" | jq -r ".body_plain";;
-                      *)  printf '%s\n' "$msg" | jq -r ".body_html";;
+    case "$flags" in *t*) body=$(printf '%s\n' "$msg" | jq -r ".body_plain");;
+                      *)  body=$(printf '%s\n' "$msg" | jq -r ".body_html");;
     esac
+    [ -n "$body" ] && printf '%s\n' "$body" || printerr "Body is empty"
     ;;
 *)  printerr "$usage"
     ;;
