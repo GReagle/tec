@@ -1,8 +1,8 @@
 .Dd 2020-10-17
-.Dt TEC-CREATE-ADDRESS 1
+.Dt tec-new-addr 1
 .Os
 .Sh NAME
-.Nm tec-create-address
+.Nm tec-new-addr
 .Nd temporary email commands: create an email address
 .Sh SYNOPSIS
 .Nm
@@ -22,7 +22,7 @@ Use 1secmail temporary email service.  With this option, it generates a random e
 .Sh EXAMPLES
 .Ss burner.kiwi
 Create an email address with burner.kiwi and save the account information:
-.Dl tec-create-address -k > kiwi-account.json
+.Dl tec-new-addr -k > kiwi-account.json
 .Pp
 Show the email address that was created:
 .Dl jq -r '.result.email.address' kiwi-account.json
@@ -31,12 +31,12 @@ Pretty print all the account information:
 .Dl jq '' kiwi-account.json
 .Ss 1secmail
 Generate a random email address for 1secmail and save it:
-.Dl tec-create-address -s > secmail-address.txt
+.Dl tec-new-addr -s > secmail-address.txt
 .Pp
 Show the email address that was generated:
 .Dl cat secmail-address.txt
 .Sh SEE ALSO
-.Xr tec-list-headers 1 , Xr tec-view-message 1 , Xr jq 1
+.Xr tec-ls-hdrs 1 , Xr tec-view-msg 1 , Xr jq 1
 .Pp
 .Lk https://burner.kiwi/ ,
 .Lk https://www.1secmail.com/

@@ -1,8 +1,8 @@
 .Dd 2020-10-17
-.Dt TEC-LIST-HEADERS 1
+.Dt tec-ls-hdrs 1
 .Os
 .Sh NAME
-.Nm tec-list-headers
+.Nm tec-ls-hdrs
 .Nd temporary email commands: list headers of messages
 .Sh SYNOPSIS
 .Nm
@@ -11,7 +11,7 @@
 .Ss Input
 .Nm
 requires the information previously created by
-.Xr tec-create-address 1
+.Xr tec-new-addr 1
 to be on its standard input.
 .Ss Arguments and Options
 .Nm
@@ -24,8 +24,8 @@ Use 1secmail temporary email service.
 .El
 .Sh EXAMPLES
 .Ss burner.kiwi
-.Dl tec-list-headers -k < kiwi-account.json
+.Dl tec-ls-hdrs -k < kiwi-account.json
 .Ss 1secmail
-.Dl tec-list-headers -s < secmail-address.txt
+.Dl tec-ls-hdrs -s < secmail-address.txt
 .Sh SEE ALSO
-.Xr tec-create-address 1 , Xr tec-view-message 1 , Xr jq 1
+.Xr tec-new-addr 1 , Xr tec-view-msg 1 , Xr jq 1

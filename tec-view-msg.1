@@ -1,8 +1,8 @@
 .Dd 2020-10-17
-.Dt TEC-VIEW-MESSAGE 1
+.Dt tec-view-msg 1
 .Os
 .Sh NAME
-.Nm tec-view-message
+.Nm tec-view-msg
 .Nd temporary email commands: view a message
 .Sh SYNOPSIS
 .Nm
@@ -13,12 +13,12 @@
 .Ss Input
 .Nm
 requires the information previously created by
-.Xr tec-create-address 1
+.Xr tec-new-addr 1
 to be on its standard input.
 .Ss Arguments and Options
 .Ar ID
 can be found in the output of
-.Xr tec-list-headers 1
+.Xr tec-ls-hdrs 1
 .Bl -tag -width Ds
 .It Fl k
 Use burner.kiwi temporary email service.
@@ -29,12 +29,12 @@ Print text text body of the email message (instead of the HTML body)
 .El
 .Sh EXAMPLES
 .Ss burner.kiwi
-.Dl tec-view-message -tk b32ee0b3-36c7-4125-94f2-dbc80e80deec < kiwi-account.json | less
+.Dl tec-view-msg -tk b32ee0b3-36c7-4125-94f2-dbc80e80deec < kiwi-account.json | less
 .Pp
-.Dl tec-view-message -k 5e7e884f-7e2a-40db-8ca3-c2d5a9a2995c < kiwi-account.json | elinks
+.Dl tec-view-msg -k 5e7e884f-7e2a-40db-8ca3-c2d5a9a2995c < kiwi-account.json | elinks
 .Pp
-.Dl tec-view-message -k 5e7e884f-7e2a-40db-8ca3-c2d5a9a2995c < kiwi-account.json | w3m -T text/html
+.Dl tec-view-msg -k 5e7e884f-7e2a-40db-8ca3-c2d5a9a2995c < kiwi-account.json | w3m -T text/html
 .Ss 1secmail
-.Dl tec-view-message -ts 89642495 < secmail-address.txt | less
+.Dl tec-view-msg -ts 89642495 < secmail-address.txt | less
 .Sh SEE ALSO
-.Xr tec-create-address 1 , Xr tec-list-headers 1 , Xr jq 1
+.Xr tec-new-addr 1 , Xr tec-ls-hdrs 1 , Xr jq 1
