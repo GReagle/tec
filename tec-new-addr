@@ -1,7 +1,5 @@
 #!/bin/sh
 set -u
-# You are expected to redirect stdout on this command and use the resulting
-# file as input for subsequent commands
 
 printerr() {>&2 printf '%s\n' "$0: $1" ; exit 1; }
 usage="-k|-s"
