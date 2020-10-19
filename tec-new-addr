@@ -24,7 +24,6 @@ k)  kiwi_url="https://burner.kiwi/api/v1"
     errors=$(printf %s "$inbox_details" | jq -r .errors)
     if [ "$errors" != null ]; then
         printerr "problem creating inbox with kiwi, errors = $errors"
-        exit 1
     fi
     printf "%s\n" "$inbox_details"
     ;;
