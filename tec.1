@@ -1,0 +1,77 @@
+.Dd 2020-10-21
+.Dt tec 1
+.Os
+.Sh NAME
+.Nm tec
+.Nd temporary email command
+.Sh SYNOPSIS
+.Nm
+.Fl c | Fl l
+.Nm
+.Op Fl t
+.Fl v Ar ID
+.Sh DESCRIPTION
+This is a command for using a temporary email service.
+.Sh FLAGS
+.Ss Temporary email services
+.Bl -tag -width Ds
+.It Fl k
+Use burner.kiwi temporary email service.
+.It Fl s
+Use 1secmail temporary email service.
+.El
+.Ss Options
+.Bl -tag -width Ds
+.It Fl t
+Print text body of the email message being viewed (instead of the HTML body)
+.El
+.Ss Actions
+.Bl -tag -width Ds
+.It Fl c
+Create a new email address for use with a temporary email service.  You are
+expected to redirect stdout of this action and use the resulting file as
+input for the other actions.
+.It Fl l
+List headers of messages.  You are expected to redirect stdin of this
+action.
+.It Fl v
+View the body of message
+.Ar ID .
+You are expected to redirect stdin of this action.
+.El
+.Sh EXAMPLES
+.Ss burner.kiwi
+.Pp
+Create an email address with burner.kiwi and save the account information:
+.Dl tec -kc > kiwi-account.json
+.Pp
+Show the email address that was created:
+.Dl jq -r '.result.email.address' kiwi-account.json
+.Pp
+Pretty print all the account information:
+.Dl jq '' kiwi-account.json
+.Pp
+List messages
+.Dl tec -kl < kiwi-account.json
+.Pp
+View message
+.Dl tec -kv 5e7e884f-7e2a-40db-8ca3-c2d5a9a2995c < kiwi-account.json | elinks
+.Pp
+.Dl tec -kv 5e7e884f-7e2a-40db-8ca3-c2d5a9a2995c < kiwi-account.json | w3m -T text/html
+.Pp
+.Ss 1secmail
+.Pp
+Generate a random email address for 1secmail and save it:
+.Dl tec -sc > secmail-address.txt
+.Pp
+Show the email address that was generated:
+.Dl cat secmail-address.txt
+.Pp
+List messages
+.Dl tec -sl < secmail-address.txt
+.Pp
+View message
+.Dl tec -tsv 89642495 < secmail-address.txt | less
+.Pp
+.Sh SEE ALSO
+.Xr jq 1

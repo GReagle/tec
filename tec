@@ -1,0 +1,128 @@
+#!/bin/sh
+# -*- indent-tabs-mode: t; sh-basic-offset: 3; tab-width: 3; fill-column:80; eval:(fci-mode) -*-
+set -u
+
+printerr()
+{ >&2 printf '%s: %s\n' "$(basename "$0")" "$1" ; exit 1; }
+print_usage()
+{
+	printf '%s %s\n' "$(basename "$0")" "-k|-s -c|-l"
+	printf '%s %s\n' "$(basename "$0")" "[-t] -k|-s -v ID
+  Option flags:
+   -k  burner.kiwi
+   -s  1secmail
+   -t  show text (not html)
+  Action flags:
+   -c  create new address
+   -l  list headers of messages
+   -v  view message ID"
+}
+
+flags=''
+while getopts cklstv: f; do
+	case "$f" in
+		c|k|l|s|t)  flags="$flags$f";;
+		v)          flags="$flags$f"; msg_id="$OPTARG";;
+		*)          print_usage; exit 1;;
+	esac
+done
+shift $(expr $OPTIND - 1)
+[ $# -gt 0 ] && print_usage && exit 1
+
+kiwi="https://burner.kiwi/api/v1"
+secmail="https://www.1secmail.com/api/v1/"
+case "$flags" in
+*c*)  # create new address
+	case "$flags" in
+	*k*)
+		inbox_details=$(curl -fsL "$kiwi"/inbox)
+		[ $? != 0 ] && printerr "curl error"
+		errors=$(printf %s "$inbox_details" | jq -r .errors)
+		[ "$errors" != "null" ] && printerr "errors = $errors"
+		printf "%s\n" "$inbox_details"
+		;;
+	*s*)
+		user=$(shuf -n 10 -r -i 0-9 | tr -d '\n')
+		dmn=$(shuf -n 1 -e com net org)
+		printf '%s@1secmail.%s\n' "$user" "$dmn"
+		;;
+	*) print_usage && exit 1 ;;
+	esac ;;
+*l*)  # list headers of messages
+	case "$flags" in
+	*k*)
+		acct_info=$(cat)
+		addr=$(printf %s "$acct_info" | jq -r .result.email.address)
+		acct_id=$(printf %s "$acct_info" | jq -r .result.email.id)
+		token=$(printf %s "$acct_info" | jq -r .result.token)
+		auth_hdr="X-Burner-Key: $token"
+		messages=$(curl -sL -H "$auth_hdr" "${kiwi}/inbox/${acct_id}/messages")
+		[ $? != 0 ] && printerr 'curl error'
+		errors=$(printf %s "$messages" | jq -r .errors)
+		[ "$errors" != null ] && printerr "errors = $errors"
+		count=$(printf %s "$messages" | jq '.result | length')
+		printf '%s has %s messages(s).\n\n' "$addr" "$count"
+		for i in $(seq 0 $(expr $count - 1) ); do
+			headers=$(printf %s "$messages" | jq -r ".result[$i] | del(.body_html) | del(.body_plain)")
+			printf '  Received  at: '
+			printf %s "$headers" | jq '.received_at | strftime("%Y-%m-%d %H:%M:%S Z")'
+			printf '  Time to live: '
+			printf %s "$headers" | jq '.ttl | strftime("%Y-%m-%d %H:%M:%S Z")'
+			printf %s "$headers" | jq 'del(.received_at) | del(.ttl)' | egrep -v '^{|^}'
+			printf '\n'
+		done
+		;;
+	*s*)
+		addr=$(cat)
+		user=${addr%@*}
+		dmn=${addr#*.}
+		url="${secmail}?action=getMessages&login=${user}&{dmn}=1secmail.${dmn}"
+		messages=$(curl -sL "$url")
+		[ $? != 0 ] && printerr "curl error"
+		count=$(printf %s "$messages" | jq 'length')
+		printf '%s has %s messages(s).\n\n' "$addr" "$count"
+		printf %s "$messages" | jq '' | egrep -v '^ *[][{]'
+		;;
+	*) print_usage && exit 1 ;;
+	esac ;;
+*v*)  # view message ID
+	case "$flags" in
+	*k*)
+		info=$(cat)
+		acct_id=$(printf %s "$info" | jq -r .result.email.id)
+		token=$(printf %s "$info" | jq -r .result.token)
+		auth_hdr="X-Burner-Key: $token"
+		messages=$(curl -sL -H "$auth_hdr" "${kiwi}/inbox/${acct_id}/messages")
+		[ $? != 0 ] && printerr 'curl error'
+		errors=$(printf %s "$messages" | jq -r .errors)
+		[ "$errors" != null ] && printerr "errors = $errors"
+
+		count=$(printf %s "$messages" | jq '.result | length')
+		[ "$count" -eq 0 ] && printerr "empty mailbox has no messages"
+		msg=$(printf %s "$messages" | jq ".result[] | select(.id==\"$msg_id\")")
+		[ -z "$msg" ] && printerr "ID '$msg_id' does not match a message"
+		case "$flags" in *t*) body=$(printf '%s\n' "$msg" | jq -r ".body_plain");;
+							  *)   body=$(printf '%s\n' "$msg" | jq -r ".body_html");;
+		esac
+		[ -n "$body" ] && printf '%s\n' "$body" || printerr "Body is empty"
+		;;
+	*s*)
+		addr=$(cat)
+		user=${addr%@*}
+		dmn=${addr#*.}
+		url="${secmail}?action=readMessage&login=${user}&dmn=1secmail.${dmn}&id=${msg_id}"
+		msg=$(curl -fsL "$url")
+		[ $? != 0 ] && printerr "curl error"
+		if [ "$msg" = "Message not found" ]; then
+			printerr "ID '$msg_id' does not match a message"
+		fi
+		case "$flags" in *t*) body=$(printf '%s\n' "$msg" | jq -r ".textBody");;
+							  *)   body=$(printf '%s\n' "$msg" | jq -r ".htmlBody");;
+		esac
+		[ -n "$body" ] && printf '%s\n' "$body" || printerr "Body is empty"
+		;;
+	*) print_usage && exit 1 ;;
+	esac
+	;;
+*) print_usage && exit 1 ;;
+esac
